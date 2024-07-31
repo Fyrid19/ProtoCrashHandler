@@ -1,2 +1,2 @@
 # ProtoCrashHandler
-Crash handler for FNF Engine, Prototype Engine
+Crash handler for Prototype Engine, could be used for other Haxe projects.
