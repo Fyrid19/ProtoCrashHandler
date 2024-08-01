@@ -21,13 +21,15 @@
 	<set name="BUILD_DIR" value="export/release" unless="debug" />
 	<set name="BUILD_DIR" value="export/32bit" if="32bits" />
 
-    <classpath name="source" />
+    <source path="source" />
 
     <assets path="assets/" rename="assets" exclude="*.mp3" preload="true" />
 
     <!-- Haxelibs -->
     
     <haxelib name="flixel" />
+    <haxelib name="haxeui-core" />
+    <haxelib name="haxeui-flixel" />
 
     <!-- Haxedefs -->
 
