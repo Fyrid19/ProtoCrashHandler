@@ -92,7 +92,7 @@ class PlayState extends FlxState {
         });
 
         repoButton.x = 5;
-        repoButton.y = FlxG.height - 25 - 5;
+        repoButton.y = FlxG.height - 25 - 2;
         logButton.x = repoButton.x;
         logButton.y = repoButton.y - 25 - 2;
         add(repoButton);
