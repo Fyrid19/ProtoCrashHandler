@@ -28,7 +28,10 @@ class Main extends Sprite {
     }
 
     private function setupGame():Void {
-        PlayState.errorData = Sys.args();
+        PlayState.errMsg = Sys.args()[0];
+        PlayState.errData = Sys.args()[1];
+        PlayState.crashDate = Sys.args()[2];
+
         addChild(new FlxGame(960, 540, PlayState, 60, 60, true, false));
     }
 }

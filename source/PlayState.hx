@@ -11,15 +11,20 @@ import haxe.ui.styles.Style;
 import haxe.ui.containers.Box;
 import haxe.ui.components.*;
 
-import openfl.Assets;
-import openfl.errors.Error;
+import sys.FileSystem;
+import sys.io.File;
+
+using StringTools;
 
 class PlayState extends FlxState {
     var textFont:String = 'vcr.ttf';
 
     public final repoLink:String = 'https://github.com/Fyrid19/Proto-Engine-FNF';
 
-    public static var errorData:Array<String>;
+    public static var errMsg:String = null;
+    public static var errData:String = null;
+    public static var crashDate:String = null;
+    var dateFormat:String;
 
     override function create() {
         super.create();
@@ -27,12 +32,17 @@ class PlayState extends FlxState {
         Toolkit.theme = 'dark';
         Toolkit.init();
 
+        if (crashDate == null)
+            crashDate = Date.now().toString();
+        dateFormat = crashDate.replace(" ", "_").replace(":", "'");
+
         var bg:FlxSprite = new FlxSprite().loadGraphic(getImage('menuInvert'));
         bg.setGraphicSize(bg.width * 0.8);
         bg.screenCenter();
+        // bg.color = 0x0066FF;
         add(bg);
 
-        var errorTxt:FlxText = new FlxText(0, 30, FlxG.width, 'Game Crash' + (errorData[0] != null ? '!' : '?'));
+        var errorTxt:FlxText = new FlxText(0, 30, FlxG.width, 'Game Crash' + (errMsg != null ? '!' : '?'));
         errorTxt.setFormat(getFont(textFont), 64, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
         add(errorTxt);
 
@@ -41,28 +51,35 @@ class PlayState extends FlxState {
         githubTxt.text = 'Please report this error to the GitHub page! \n$repoLink';
         add(githubTxt);
 
-        var scrollArea:VerticalScroll = new VerticalScroll();
-        scrollArea.color = 0xFFFFFF;
-        scrollArea.setSize(FlxG.width * 0.9, FlxG.height * 0.6);
-        scrollArea.screenCenter(X);
-        scrollArea.y += 150;
-        add(scrollArea);
+        var dateTxt:FlxText = new FlxText(5, 5, FlxG.width);
+        dateTxt.setFormat(getFont(textFont), 12, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        dateTxt.text = 'Crashed at $crashDate';
+        add(dateTxt);
+
+        var creditTxt:FlxText = new FlxText(5, dateTxt.y + dateTxt.height, FlxG.width);
+        creditTxt.setFormat(getFont(textFont), 12, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        creditTxt.text = 'Original code by sqirra-rng';
+        add(creditTxt);
 
         var page = new Box();
         applyStyle(page.customStyle);
-        page.setSize(scrollArea.width, scrollArea.height);
-        page.includeInLayout = false;
-        scrollArea.addComponent(page);
+        page.setSize(FlxG.width * 0.9, FlxG.height * 0.6);
+        page.screenCenter(X);
+        page.y += 150;
+        add(page);
+
+        var scrollArea:VerticalScroll = new VerticalScroll();
+        scrollArea.setSize(page.width, page.height);
+        scrollArea.includeInLayout = false;
+        page.addComponent(scrollArea);
 
         var textArea = new TextArea();
-        if (errorData != null) {
-            textArea.text = '';
-            if (errorData[0] != '')
-                textArea.text = errorData[0] + '\n\n';
-            textArea.text += errorData[1];
-        }
+        applyStyle(textArea.customStyle);
+        textArea.setSize(page.width, page.height);
+        textArea.text = (errMsg != null ? '$errMsg\n\n' : '');
+        textArea.text += (errData != null ? errData : 'No errors found!');
         textArea.includeInLayout = false;
-        page.addComponent(textArea);
+        scrollArea.addComponent(textArea);
 
         var repoButton:Button = newButton('Open Git Repo', () -> {
             FlxG.openURL(repoLink + '/issues');
@@ -70,7 +87,8 @@ class PlayState extends FlxState {
         });
 
         var logButton:Button = newButton('Log Crash', () -> {
-            trace('log');
+            logCrash();
+            trace('logging');
         });
 
         repoButton.x = 5;
@@ -79,6 +97,22 @@ class PlayState extends FlxState {
         logButton.y = repoButton.y - 25 - 2;
         add(repoButton);
         add(logButton);
+    }
+
+    function logCrash() {
+        var appVer:String = '1.0';
+        var fileName:String = 'ProtoCrashLog_' + dateFormat + '.txt';
+        final errCompact:String = 'Prototype Engine Crash Handler v' + appVer + '\n'
+        + errMsg + '\n\n' 
+        + errData + '\n\n' + 'Crash at $crashDate\n' 
+        + 'Original code by sqirra-rng';
+        if (!FileSystem.exists("./crashlog/"))
+            FileSystem.createDirectory("./crashlog/");
+
+        if (!FileSystem.exists("./crashlog/" + fileName))
+            File.saveContent("./crashlog/" + fileName, errCompact);
+        else
+            trace('log exists already');
     }
 
     inline function newButton(text:String, clickFunction:Void->Void) {
