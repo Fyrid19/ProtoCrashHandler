@@ -8,7 +8,8 @@ import flixel.util.FlxColor;
 
 import haxe.ui.Toolkit;
 import haxe.ui.styles.Style;
-import haxe.ui.containers.Box;
+import haxe.ui.containers.windows.*;
+import haxe.ui.containers.*;
 import haxe.ui.components.*;
 
 import sys.FileSystem;
@@ -16,21 +17,42 @@ import sys.io.File;
 
 using StringTools;
 
+/**
+ * The inner-workings of the crash handler.
+ */
 class PlayState extends FlxState {
+    /**
+     * Text font used for the program.
+     */
     var textFont:String = 'vcr.ttf';
 
+    /**
+     * The link to your git repositiory.
+     */
     public final repoLink:String = 'https://github.com/Fyrid19/Proto-Engine-FNF';
 
+    /**
+     * The actual error that occurred.
+     */
     public static var errMsg:String = null;
+
+    /**
+     * Info on the error, usually consisting of where the error came from.
+     */
     public static var errData:String = null;
+
+    /**
+     * Exact date of the crash, or if no date can be found defaults to the time you opened the program.
+     */
     public static var crashDate:String = null;
+
+    /**
+     * "crashDate" but formatted for files.
+     */
     var dateFormat:String;
 
     override function create() {
         super.create();
-
-        Toolkit.theme = 'dark';
-        Toolkit.init();
 
         if (crashDate == null)
             crashDate = Date.now().toString();
@@ -61,6 +83,11 @@ class PlayState extends FlxState {
         creditTxt.text = 'Original code by sqirra-rng';
         add(creditTxt);
 
+        var creditTxt2:FlxText = new FlxText(5, creditTxt.y + creditTxt.height, FlxG.width);
+        creditTxt2.setFormat(getFont(textFont), 12, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        creditTxt2.text = 'Crash handler written by Fyrid19';
+        add(creditTxt2);
+
         var page = new Box();
         applyStyle(page.customStyle);
         page.setSize(FlxG.width * 0.9, FlxG.height * 0.6);
@@ -73,13 +100,13 @@ class PlayState extends FlxState {
         scrollArea.includeInLayout = false;
         page.addComponent(scrollArea);
 
-        var textArea = new TextArea();
-        applyStyle(textArea.customStyle);
-        textArea.setSize(page.width, page.height);
-        textArea.text = (errMsg != null ? '$errMsg\n\n' : '');
-        textArea.text += (errData != null ? errData : 'No errors found!');
-        textArea.includeInLayout = false;
-        scrollArea.addComponent(textArea);
+        var textLabel = new Label();
+        textLabel.customStyle.left = 10;
+        textLabel.customStyle.fontSize = 10;
+        textLabel.text = (errMsg != null ? '$errMsg\n\n' : '');
+        textLabel.text += (errData != null ? errData : 'No info on the error has been found!');
+        textLabel.includeInLayout = false;
+        scrollArea.addComponent(textLabel);
 
         var repoButton:Button = newButton('Open Git Repo', () -> {
             FlxG.openURL(repoLink + '/issues');
@@ -91,35 +118,60 @@ class PlayState extends FlxState {
             trace('logging');
         });
 
-        repoButton.x = 5;
-        repoButton.y = FlxG.height - 25 - 2;
-        logButton.x = repoButton.x;
-        logButton.y = repoButton.y - 25 - 2;
-        add(repoButton);
-        add(logButton);
+        var sideButtons:VBox = new VBox();
+        sideButtons.x = 5;
+        sideButtons.y = FlxG.height - 60;
+        add(sideButtons);
+
+        sideButtons.addComponent(logButton);
+        sideButtons.addComponent(repoButton);
     }
 
     function logCrash() {
         var appVer:String = '1.0';
+        var crashLocation:String = "./crash/crashlog/";
         var fileName:String = 'ProtoCrashLog_' + dateFormat + '.txt';
+        var fullFilePath:String = FileSystem.fullPath(crashLocation + fileName);
         final errCompact:String = 'Prototype Engine Crash Handler v' + appVer + '\n'
         + errMsg + '\n\n' 
         + errData + '\n\n' + 'Crash at $crashDate\n' 
         + 'Original code by sqirra-rng';
-        if (!FileSystem.exists("./crashlog/"))
-            FileSystem.createDirectory("./crashlog/");
+        if (!FileSystem.exists(crashLocation))
+            FileSystem.createDirectory(crashLocation);
 
-        if (!FileSystem.exists("./crashlog/" + fileName))
-            File.saveContent("./crashlog/" + fileName, errCompact);
-        else
-            trace('log exists already');
+        if (!FileSystem.exists(crashLocation + fileName)) {
+            File.saveContent(crashLocation + fileName, errCompact);
+            showPopup('Crash Log', 'Successfully logged crash to "' + fullFilePath + '"');
+        } else {
+            showPopup('Crash Log', 'Crash log already exists!');
+        }
+    }
+
+    function showPopup(title:String, text:String, ?callback:Void->Void) {
+        var popup:Window = newWindow(false, false, false, title);
+        var label:Label = new Label();
+        label.text = text;
+        popup.addComponent(label);
+        popup.x = FlxG.width/2 - popup.width/2;
+        popup.y = FlxG.height/2 - popup.height/2;
+        popup.draggable = false;
+        add(popup);
+    }
+
+    inline function newWindow(minimizable:Bool, collapsable:Bool, maximizable:Bool, title:String) {
+        var window:Window = new Window();
+        window.minimizable = minimizable;
+        window.collapsable = collapsable;
+        window.maximizable = maximizable;
+        window.title = title;
+        window.windowManager = new WindowManager();
+        return window;
     }
 
     inline function newButton(text:String, clickFunction:Void->Void) {
         var button:Button = new Button();
         applyStyle(button.customStyle);
         button.onClick = (_) -> clickFunction();
-        button.includeInLayout = false;
         button.text = text;
         button.focus = false;
         return button;
@@ -130,6 +182,7 @@ class PlayState extends FlxState {
         style.borderColor = 0xFFFFFF;
         style.borderRadius = 16;
         style.borderSize = 10;
+        style.fontSize = 10;
     }
 
     inline function getImage(key:String) {
