@@ -142,7 +142,7 @@ class PlayState extends FlxState {
         + errMsg + '\n\n' 
         + errData + '\n\n' + 'Crash at $crashDate\n' 
         + 'Original code by sqirra-rng';
-        if (!FileSystem.exists("./crash/")) { // cuz shit stupid idk
+        if (!FileSystem.exists("./crash/")) {
             crashLocation = "./crashlog/";
             normalFilePath = Path.normalize(crashLocation + fileName);
         }
