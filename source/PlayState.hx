@@ -5,13 +5,15 @@ import flixel.FlxState;
 import flixel.FlxSprite;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
+import flixel.tweens.FlxTween;
 
 import haxe.ui.Toolkit;
 import haxe.ui.styles.Style;
-import haxe.ui.containers.windows.*;
 import haxe.ui.containers.*;
 import haxe.ui.components.*;
 
+import haxe.io.Path;
 import sys.FileSystem;
 import sys.io.File;
 
@@ -51,15 +53,17 @@ class PlayState extends FlxState {
      */
     var dateFormat:String;
 
+    var logTextGroup:VBox;
+
     override function create() {
         super.create();
 
         if (crashDate == null)
             crashDate = Date.now().toString();
-        dateFormat = crashDate.replace(" ", "_").replace(":", "'");
+        dateFormat = crashDate.replace(" ", "_").replace(":", "-");
 
         var bg:FlxSprite = new FlxSprite().loadGraphic(getImage('menuInvert'));
-        bg.setGraphicSize(bg.width * 0.8);
+        bg.setGraphicSize(Std.int(bg.width * 0.8));
         bg.screenCenter();
         // bg.color = 0x0066FF;
         add(bg);
@@ -95,17 +99,15 @@ class PlayState extends FlxState {
         page.y += 150;
         add(page);
 
-        var scrollArea:VerticalScroll = new VerticalScroll();
+        var scrollArea:ScrollView = new ScrollView();
         scrollArea.setSize(page.width, page.height);
-        scrollArea.includeInLayout = false;
+        scrollArea.scrollMode = 'native';
         page.addComponent(scrollArea);
 
         var textLabel = new Label();
-        textLabel.customStyle.left = 10;
         textLabel.customStyle.fontSize = 10;
         textLabel.text = (errMsg != null ? '$errMsg\n\n' : '');
         textLabel.text += (errData != null ? errData : 'No info on the error has been found!');
-        textLabel.includeInLayout = false;
         scrollArea.addComponent(textLabel);
 
         var repoButton:Button = newButton('Open Git Repo', () -> {
@@ -125,47 +127,49 @@ class PlayState extends FlxState {
 
         sideButtons.addComponent(logButton);
         sideButtons.addComponent(repoButton);
+
+        logTextGroup = new VBox();
+        logTextGroup.x = FlxG.width * 0.2;
+        add(logTextGroup);
     }
 
     function logCrash() {
         var appVer:String = '1.0';
         var crashLocation:String = "./crash/crashlog/";
         var fileName:String = 'ProtoCrashLog_' + dateFormat + '.txt';
-        var fullFilePath:String = FileSystem.fullPath(crashLocation + fileName);
+        var normalFilePath:String = Path.normalize(crashLocation + fileName);
         final errCompact:String = 'Prototype Engine Crash Handler v' + appVer + '\n'
         + errMsg + '\n\n' 
         + errData + '\n\n' + 'Crash at $crashDate\n' 
         + 'Original code by sqirra-rng';
+        if (!FileSystem.exists("./crash/")) { // cuz shit stupid idk
+            crashLocation = "./crashlog/";
+            normalFilePath = Path.normalize(crashLocation + fileName);
+        }
+
         if (!FileSystem.exists(crashLocation))
             FileSystem.createDirectory(crashLocation);
 
         if (!FileSystem.exists(crashLocation + fileName)) {
             File.saveContent(crashLocation + fileName, errCompact);
-            showPopup('Crash Log', 'Successfully logged crash to "' + fullFilePath + '"');
+            traceLog('Saved crash log to "' + normalFilePath + '"', 0x00FF00);
         } else {
-            showPopup('Crash Log', 'Crash log already exists!');
+            traceLog('Crash log already exists!', 0xFF0000);
         }
     }
 
-    function showPopup(title:String, text:String, ?callback:Void->Void) {
-        var popup:Window = newWindow(false, false, false, title);
-        var label:Label = new Label();
-        label.text = text;
-        popup.addComponent(label);
-        popup.x = FlxG.width/2 - popup.width/2;
-        popup.y = FlxG.height/2 - popup.height/2;
-        popup.draggable = false;
-        add(popup);
-    }
-
-    inline function newWindow(minimizable:Bool, collapsable:Bool, maximizable:Bool, title:String) {
-        var window:Window = new Window();
-        window.minimizable = minimizable;
-        window.collapsable = collapsable;
-        window.maximizable = maximizable;
-        window.title = title;
-        window.windowManager = new WindowManager();
-        return window;
+    function traceLog(text:String, ?color:FlxColor = FlxColor.WHITE) {
+        var logText:Label = new Label();
+        logText.width = FlxG.width * 0.8;
+        logText.text = text;
+        logText.customStyle.color = color;
+        logText.customStyle.fontSize = 10;
+        logText.textAlign = 'right';
+        logText.wordWrap = true;
+        logTextGroup.addComponent(logText);
+        new FlxTimer().start(4, function(tmr:FlxTimer) {
+            FlxTween.tween(logText, {alpha: 0}, 1, {onComplete: function(t) logTextGroup.removeComponent(logText)});
+        });
     }
 
     inline function newButton(text:String, clickFunction:Void->Void) {
@@ -186,10 +190,17 @@ class PlayState extends FlxState {
     }
 
     inline function getImage(key:String) {
-        return 'assets/images/$key.png';
+        return returnPath('$key.png', 'images');
     }
 
     inline function getFont(key:String) {
-        return 'assets/fonts/$key';
+        return returnPath(key, 'fonts');
+    }
+
+    inline function returnPath(key:String, folder:String) {
+        var path:String = 'assets/$folder/$key';
+        if (FileSystem.exists('crash'))
+            path = 'crash/assets/$folder/$key';
+        return path;
     }
 }
