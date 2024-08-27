@@ -201,6 +201,6 @@ class PlayState extends FlxState {
         var path:String = 'assets/$folder/$key';
         if (FileSystem.exists('crash'))
             path = 'crash/assets/$folder/$key';
-        return path;
+        return FileSystem.extists(path) ? path : null;
     }
 }
