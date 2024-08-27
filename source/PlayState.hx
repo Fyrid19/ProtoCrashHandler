@@ -63,7 +63,6 @@ class PlayState extends FlxState {
         dateFormat = crashDate.replace(" ", "_").replace(":", "-");
 
         var bg:FlxSprite = new FlxSprite().loadGraphic(getImage('menuInvert'));
-        bg.setGraphicSize(Std.int(bg.width * 0.8));
         bg.screenCenter();
         // bg.color = 0x0066FF;
         add(bg);
@@ -201,6 +200,6 @@ class PlayState extends FlxState {
         var path:String = 'assets/$folder/$key';
         if (FileSystem.exists('crash'))
             path = 'crash/assets/$folder/$key';
-        return FileSystem.extists(path) ? path : null;
+        return FileSystem.exists(path) ? path : null;
     }
 }
