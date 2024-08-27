@@ -50,6 +50,6 @@ class Main extends Sprite {
         PlayState.errData = Sys.args()[1];
         PlayState.crashDate = Sys.args()[2];
 
-        addChild(new FlxGame(960, 540, PlayState, 60, 60, true, false));
+        addChild(new FlxGame(1280, 720, PlayState, 60, 60, true, false));
     }
 }

@@ -69,26 +69,26 @@ class PlayState extends FlxState {
         add(bg);
 
         var errorTxt:FlxText = new FlxText(0, 30, FlxG.width, 'Game Crash' + (errMsg != null ? '!' : '?'));
-        errorTxt.setFormat(getFont(textFont), 64, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        errorTxt.setFormat(getFont(textFont), 72, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
         add(errorTxt);
 
         var githubTxt:FlxText = new FlxText(0, errorTxt.y + errorTxt.height + 5, FlxG.width, '');
-        githubTxt.setFormat(getFont(textFont), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        githubTxt.setFormat(getFont(textFont), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
         githubTxt.text = 'Please report this error to the GitHub page! \n$repoLink';
         add(githubTxt);
 
         var dateTxt:FlxText = new FlxText(5, 5, FlxG.width);
-        dateTxt.setFormat(getFont(textFont), 12, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        dateTxt.setFormat(getFont(textFont), 20, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
         dateTxt.text = 'Crashed at $crashDate';
         add(dateTxt);
 
         var creditTxt:FlxText = new FlxText(5, dateTxt.y + dateTxt.height, FlxG.width);
-        creditTxt.setFormat(getFont(textFont), 12, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        creditTxt.setFormat(getFont(textFont), 20, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
         creditTxt.text = 'Original code by sqirra-rng';
         add(creditTxt);
 
         var creditTxt2:FlxText = new FlxText(5, creditTxt.y + creditTxt.height, FlxG.width);
-        creditTxt2.setFormat(getFont(textFont), 12, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+        creditTxt2.setFormat(getFont(textFont), 20, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
         creditTxt2.text = 'Crash handler written by Fyrid19';
         add(creditTxt2);
 
@@ -96,7 +96,7 @@ class PlayState extends FlxState {
         applyStyle(page.customStyle);
         page.setSize(FlxG.width * 0.9, FlxG.height * 0.6);
         page.screenCenter(X);
-        page.y += 150;
+        page.y += githubTxt.y + githubTxt.height + 25;
         add(page);
 
         var scrollArea:ScrollView = new ScrollView();
@@ -105,7 +105,7 @@ class PlayState extends FlxState {
         page.addComponent(scrollArea);
 
         var textLabel = new Label();
-        textLabel.customStyle.fontSize = 10;
+        textLabel.customStyle.fontSize = 16;
         textLabel.text = (errMsg != null ? '$errMsg\n\n' : '');
         textLabel.text += (errData != null ? errData : 'No info on the error has been found!');
         scrollArea.addComponent(textLabel);
@@ -122,7 +122,7 @@ class PlayState extends FlxState {
 
         var sideButtons:VBox = new VBox();
         sideButtons.x = 5;
-        sideButtons.y = FlxG.height - 60;
+        sideButtons.y = FlxG.height - 76;
         add(sideButtons);
 
         sideButtons.addComponent(logButton);
@@ -163,7 +163,7 @@ class PlayState extends FlxState {
         logText.width = FlxG.width * 0.8;
         logText.text = text;
         logText.customStyle.color = color;
-        logText.customStyle.fontSize = 10;
+        logText.customStyle.fontSize = 24;
         logText.textAlign = 'right';
         logText.wordWrap = true;
         logTextGroup.addComponent(logText);
@@ -186,7 +186,7 @@ class PlayState extends FlxState {
         style.borderColor = 0xFFFFFF;
         style.borderRadius = 16;
         style.borderSize = 10;
-        style.fontSize = 10;
+        style.fontSize = 16;
     }
 
     inline function getImage(key:String) {
